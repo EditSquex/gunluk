@@ -1,0 +1,77 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Mileast';
+  src: local('Mileast'), local('Mileast-Regular'), local('Mileast Font Family');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@layer base {
+  body {
+    background-color: #000000;
+    font-family: 'Mileast', Georgia, serif;
+    color: #E2E8F0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .gothic-title {
+    font-family: 'Mileast', Georgia, serif;
+  }
+}
+
+/* Custom Crescent Moon Cursor for NON-WRITE pages */
+body:not(.write-mode-active),
+body:not(.write-mode-active) *,
+body:not(.write-mode-active) button,
+body:not(.write-mode-active) a,
+body:not(.write-mode-active) select,
+body:not(.write-mode-active) [role="button"] {
+  cursor: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23E2E8F0' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z'></path></svg>") 4 4, auto !important;
+}
+
+/* HIDE ALL SCROLLBARS GLOBALLY WHILE PRESERVING SMOOTH SCROLLING */
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0px !important;
+  height: 0px !important;
+  background: transparent !important;
+}
+
+* {
+  -ms-overflow-style: none !important;  /* IE and Edge */
+  scrollbar-width: none !important;  /* Firefox */
+}
+
+/* Handcrafted Natural Dark Cards */
+.gothic-card {
+  background: #121215;
+  border: 1px solid #27272A;
+}
+
+.gothic-card-hover {
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+.gothic-card-hover:hover {
+  border-color: #3F3F46;
+  background: #18181B;
+}
+
+/* Rich text preview formatting */
+.entry-preview-content u {
+  text-decoration: underline;
+  text-decoration-color: #A1A1AA;
+}
+
+/* Mood Selection Animation */
+@keyframes moodPop {
+  0% { transform: scale(0.95); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1.02); }
+}
+
+.animate-mood-pop {
+  animation: moodPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
