@@ -33,7 +33,8 @@ import {
   Palette,
   Smile,
   Highlighter,
-  RotateCcw
+  RotateCcw,
+  FolderDown
 } from 'lucide-react';
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip 
@@ -105,6 +106,30 @@ export default function App() {
   ];
 
   const EMOJI_LIST = ['🖤', '🥀', '🌧️', '🕯️', '☕', '✨', '🌙', '💀', '🔮', '⚔️', '💔', '📜', '🔥', '🍷', '🩸', '🕸️', '🗡️', '⛓️'];
+
+  // Helper to trigger date-formatted individual file downloads (e.g., 29062026.json or 29062026.txt)
+  const downloadSingleEntryFile = (entry, format = 'json') => {
+    // Formats date YYYY-MM-DD into DDMMYYYY (e.g. 2026-06-29 -> 29062026)
+    const dateParts = entry.date.split('-');
+    const formattedDateStr = dateParts.length === 3 ? `${dateParts[2]}${dateParts[1]}${dateParts[0]}` : entry.date.replace(/-/g, '');
+    const filename = `${formattedDateStr}.${format}`;
+
+    let dataStr = "";
+    if (format === 'json') {
+      dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(entry, null, 2));
+    } else {
+      const plainText = entry.content.replace(/<[^>]*>/g, '\n').trim();
+      const txtContent = `=== GÜNLÜK ANISI ===\n\nTarih: ${entry.date} ${entry.time}\nBaşlık: ${entry.title}\nRuh Hali: ${entry.mood} (${entry.moodLabel})\n\nİçerik:\n${plainText}\n`;
+      dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(txtContent);
+    }
+
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", filename);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+  };
 
   // Mood-specific unique effects generator
   const handleMoodSelect = (mood, event) => {
@@ -296,7 +321,7 @@ export default function App() {
     setActiveTab('write');
   };
 
-  // Save Entry
+  // Save Entry with automatic date-named file download trigger (e.g. 29062026.json / 29062026.txt)
   const handleSaveEntry = (e) => {
     e.preventDefault();
     const plainText = formContent.replace(/<[^>]*>/g, '').trim();
@@ -325,8 +350,11 @@ export default function App() {
       showToast('Günlük güncellendi');
     } else {
       setEntries(prev => [newEntry, ...prev]);
-      showToast('Anı kaydedildi');
+      showToast('Anı kaydedildi ve otomatik indirildi ✓');
     }
+
+    // Automatically trigger date-named file download upon saving (e.g. 29062026.json)
+    downloadSingleEntryFile(newEntry, 'json');
 
     resetForm();
     setActiveTab('today');
@@ -367,16 +395,16 @@ export default function App() {
     return { totalEntries, totalWords, moodData };
   }, [entries]);
 
-  // Export options
+  // Bulk Export options
   const handleExportJSON = () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(entries, null, 2));
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `gunluk_yedek_${new Date().toISOString().split('T')[0]}.json`);
+    downloadAnchor.setAttribute("download", `tum_gunlukler_${new Date().toISOString().split('T')[0]}.json`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    showToast('JSON indirildi');
+    showToast('Tüm günlükler JSON indirildi');
   };
 
   const handleExportTXT = () => {
@@ -388,11 +416,11 @@ export default function App() {
     const dataStr = "data:text/plain;charset=utf-8," + encodeURIComponent(txtContent);
     const downloadAnchor = document.createElement('a');
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `gunluk_anilar_${new Date().toISOString().split('T')[0]}.txt`);
+    downloadAnchor.setAttribute("download", `tum_gunlukler_${new Date().toISOString().split('T')[0]}.txt`);
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
-    showToast('TXT indirildi');
+    showToast('Tüm günlükler TXT indirildi');
   };
 
   // Calendar View State
@@ -843,7 +871,7 @@ export default function App() {
               className="w-full bg-[#18181B] hover:bg-[#27272A] border border-[#27272A] text-slate-100 py-3 rounded-xl font-bold text-base gothic-title transition-colors flex items-center justify-center gap-2"
             >
               <Check size={18} />
-              <span>{editingEntry ? 'Kaydet' : 'Kaydet ✓'}</span>
+              <span>{editingEntry ? 'Kaydet' : 'Kaydet & İndir ✓'}</span>
             </button>
           </form>
         )}
@@ -963,19 +991,19 @@ export default function App() {
         {activeTab === 'settings' && (
           <div className="max-w-md mx-auto space-y-4 animate-fadeIn">
             <div className="gothic-card p-5 rounded-xl space-y-3">
-              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider gothic-title">Veri Aktarımı</h4>
+              <h4 className="text-xs font-semibold text-slate-400 uppercase tracking-wider gothic-title">Veri Aktarımı & Toplu İndirme</h4>
               <div className="flex gap-3">
                 <button 
                   onClick={handleExportJSON}
                   className="flex-1 bg-[#18181B] border border-[#27272A] hover:border-[#52525B] p-3 rounded-lg text-xs font-serif text-slate-300 flex items-center justify-center gap-2"
                 >
-                  <Download size={15} /> JSON İndir
+                  <Download size={15} /> Tüm Günlükler (JSON)
                 </button>
                 <button 
                   onClick={handleExportTXT}
                   className="flex-1 bg-[#18181B] border border-[#27272A] hover:border-[#52525B] p-3 rounded-lg text-xs font-serif text-slate-300 flex items-center justify-center gap-2"
                 >
-                  <Download size={15} /> TXT İndir
+                  <Download size={15} /> Tüm Günlükler (TXT)
                 </button>
               </div>
             </div>
@@ -998,7 +1026,25 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
+                {/* Single Entry Download Buttons formatted as DDMMYYYY.json / txt */}
+                <button 
+                  onClick={() => downloadSingleEntryFile(selectedEntryDetail, 'json')}
+                  className="px-2.5 py-1.5 rounded-lg bg-[#18181B] hover:bg-[#27272A] text-slate-300 border border-[#27272A] text-xs font-serif flex items-center gap-1 transition-colors"
+                  title="Tarih Adıyla JSON İndir"
+                >
+                  <FolderDown size={14} className="text-slate-400" /> JSON
+                </button>
+                <button 
+                  onClick={() => downloadSingleEntryFile(selectedEntryDetail, 'txt')}
+                  className="px-2.5 py-1.5 rounded-lg bg-[#18181B] hover:bg-[#27272A] text-slate-300 border border-[#27272A] text-xs font-serif flex items-center gap-1 transition-colors"
+                  title="Tarih Adıyla TXT İndir"
+                >
+                  <FolderDown size={14} className="text-slate-400" /> TXT
+                </button>
+
+                <div className="w-px h-4 bg-[#27272A] mx-0.5"></div>
+
                 <button 
                   onClick={() => handleStartEdit(selectedEntryDetail)} 
                   className="p-2 rounded-lg bg-[#18181B] hover:bg-[#27272A] text-slate-300 border border-[#27272A] transition-colors"
@@ -1023,7 +1069,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Modal Content - Styled like full page reading canvas with scrollbar hidden */}
+            {/* Modal Content */}
             <div className="p-6 md:p-8 overflow-y-auto space-y-4 flex-1">
               <h2 className="text-2xl md:text-3xl font-bold gothic-title text-slate-100 border-b border-[#27272A]/60 pb-3">
                 {selectedEntryDetail.title}
